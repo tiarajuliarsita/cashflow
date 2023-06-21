@@ -20,7 +20,6 @@ This project is an implementation of a simple ATM API using the Go framework and
 - Framework: [Gin](https://github.com/gin-gonic/gin)
 - Database: SQL (e.g., MySQL, PostgreSQL)
 - ORM: [GORM](https://gorm.io)
-- Logging: [Logrus](https://github.com/sirupsen/logrus)
 
 ## Installation
 
