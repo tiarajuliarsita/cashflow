@@ -10,3 +10,6 @@ CREATE TABLE users (
 );
 
 -- migrate -database "mysql://root:@tcp(127.0.0.1:3306)/miniAtm" -path database/migration up
+
+
+-- migrate create -ext sql -dir migrations create_transactions_table

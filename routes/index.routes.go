@@ -16,4 +16,6 @@ func InitRoutes(app *gin.Engine) {
 	routes.PATCH("/user/update/:id", user_controllers.UpdatedUser)
 
 	routes.POST("/user/transfer/:id", transaction_controllers.TransferTransaction)
+	routes.POST("/user/saving/:id", transaction_controllers.SavingTransaction)
+	routes.POST("/user/withdraw/:id", transaction_controllers.WithDrawTransaction)
 }
