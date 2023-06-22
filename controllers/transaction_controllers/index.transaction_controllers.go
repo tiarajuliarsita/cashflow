@@ -299,3 +299,43 @@ func WithDrawTransaction(c *gin.Context) {
 		},
 	})
 }
+
+func GetHistoryTransactionUser(c *gin.Context) {
+	id := c.Param("id")
+	idInt, _ := strconv.Atoi("id")
+	History := new([]models.History)
+	user := new(models.Users)
+
+	err := database.DB.Table("users").Where("id = ? ", id).Find(&user).Error
+	if err != nil {
+		c.JSON(400, gin.H{
+			"message": "internal server error",
+		})
+		return
+	}
+	if user.ID == 0 {
+		c.AbortWithStatusJSON(404, gin.H{
+			"message": "user not found",
+		})
+		return
+	}
+
+	err = database.DB.Table("history").Where("user_id = ?", id).Find(&History).Error
+	if err != nil {
+		c.JSON(400, gin.H{
+			"message": "internal server error",
+		})
+		return
+	}
+	historyexist := new(models.History)
+	if idInt != historyexist.UserID {
+		c.AbortWithStatusJSON(400, gin.H{
+			"message": "no transaction history",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"data": History,
+	})
+}

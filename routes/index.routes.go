@@ -18,4 +18,6 @@ func InitRoutes(app *gin.Engine) {
 	routes.POST("/user/transfer/:id", transaction_controllers.TransferTransaction)
 	routes.POST("/user/saving/:id", transaction_controllers.SavingTransaction)
 	routes.POST("/user/withdraw/:id", transaction_controllers.WithDrawTransaction)
+	routes.GET("/user/history/:id", transaction_controllers.GetHistoryTransactionUser)
+
 }
