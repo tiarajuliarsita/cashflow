@@ -260,7 +260,7 @@ func WithDrawTransaction(c *gin.Context) {
 		Amount: WDReq.Amount,
 		Date:   time.Now(),
 	}
-	err = database.DB.Table("saving").Create(&withDraw).Error
+	err = database.DB.Table("withdraw").Create(&withDraw).Error
 	if err != nil {
 		c.AbortWithStatusJSON(500, gin.H{
 			"message": "internal server error",
