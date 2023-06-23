@@ -36,7 +36,7 @@ func CreasteUser(c *gin.Context) {
 	user := models.Users{
 		Email:         userReq.Email,
 		AccountNumber: NumberAccount,
-		Balance:       userReq.Balance,
+		Saldo:       userReq.Saldo,
 		BornDate:      userReq.BornDate,
 		UserName:      userReq.UserName,
 		PhoneNumber:   userReq.PhoneNumber,
@@ -133,9 +133,10 @@ func UpdatedUser(c *gin.Context) {
 
 	err := c.ShouldBind(&userReq)
 	if err != nil {
-		c.JSON(404, gin.H{
-			"message": "user not found",
+		c.JSON(500, gin.H{
+			"message": "required data",
 		})
+		return
 	}
 	user := new(models.Users)
 	err = database.DB.Table("users").Where("id=?", id).Find(&user).Error
@@ -153,7 +154,7 @@ func UpdatedUser(c *gin.Context) {
 	}
 
 	user.UserName = userReq.UserName
-	user.Balance = userReq.Balance
+	user.Saldo = userReq.Saldo
 	user.PhoneNumber = userReq.PhoneNumber
 	user.Email = userReq.Email
 	user.BornDate = userReq.BornDate

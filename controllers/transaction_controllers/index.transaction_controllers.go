@@ -22,7 +22,20 @@ func TransferTransaction(c *gin.Context) {
 		})
 		return
 	}
-
+	// check pin of sender user
+	err = database.DB.Table("users").Where("id = ?", id).Find(&senderUser).Error
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "internal server error",
+		})
+		return
+	}
+	if senderUser.ID == 0 {
+		c.AbortWithStatusJSON(404, gin.H{
+			"message": "user not found",
+		})
+		return
+	}
 	// check account number of recipient user
 	recipientUser := new(models.Users)
 	err = database.DB.Table("users").Where("account_number = ?", trfReq.RecipientAccountNumber).Find(&recipientUser).Error
@@ -36,21 +49,6 @@ func TransferTransaction(c *gin.Context) {
 	if trfReq.RecipientAccountNumber != recipientUser.AccountNumber {
 		c.AbortWithStatusJSON(404, gin.H{
 			"message": "invalid recipient account number",
-		})
-		return
-	}
-
-	// check pin of sender user
-	err = database.DB.Table("users").Where("id = ?", id).Find(&senderUser).Error
-	if err != nil {
-		c.JSON(500, gin.H{
-			"message": "internal server error",
-		})
-		return
-	}
-	if senderUser.ID == 0 {
-		c.AbortWithStatusJSON(404, gin.H{
-			"message": "user not found",
 		})
 		return
 	}
@@ -79,15 +77,15 @@ func TransferTransaction(c *gin.Context) {
 		return
 	}
 	// change the balance on sender user
-	currentBalanceSenderUser := senderUser.Balance - trfReq.Amount
-	if trfReq.Amount > senderUser.Balance {
+	currentBalanceSenderUser := senderUser.Saldo - trfReq.Amount
+	if trfReq.Amount > senderUser.Saldo {
 		c.AbortWithStatusJSON(400, gin.H{
 			"message": "your balance is not enough",
 		})
 		return
 	}
-	senderUser.Balance = currentBalanceSenderUser
-	err = database.DB.Table("users").Where("id = ?", id).Update("balance", senderUser.Balance).Error
+	senderUser.Saldo = currentBalanceSenderUser
+	err = database.DB.Table("users").Where("id = ?", id).Update("saldo", senderUser.Saldo).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "internal server error",
@@ -97,9 +95,9 @@ func TransferTransaction(c *gin.Context) {
 
 	//change the balance on recipient user
 
-	currentBalanceRecipientUser := recipientUser.Balance + trfReq.Amount
-	recipientUser.Balance = currentBalanceRecipientUser
-	err = database.DB.Table("users").Where("account_number = ?", trfReq.RecipientAccountNumber).Update("balance", recipientUser.Balance).Error
+	currentBalanceRecipientUser := recipientUser.Saldo + trfReq.Amount
+	recipientUser.Saldo = currentBalanceRecipientUser
+	err = database.DB.Table("users").Where("account_number = ?", trfReq.RecipientAccountNumber).Update("saldo", recipientUser.Saldo).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "internal server error",
@@ -108,10 +106,11 @@ func TransferTransaction(c *gin.Context) {
 	}
 
 	UserHistory := models.History{
-		Amount:        trfReq.Amount,
-		Date:          time.Now(),
-		UserID:        idInt,
-		TransactionID: trfExist.ID,
+		Amount:          trfReq.Amount,
+		Date:            time.Now(),
+		UserID:          idInt,
+		TransactionID:   trfExist.ID,
+		TypeTransaction: "transfer",
 	}
 
 	err = database.DB.Table("history").Create(&UserHistory).Error
@@ -126,7 +125,7 @@ func TransferTransaction(c *gin.Context) {
 		"transaction": gin.H{
 			"recipient account number": trfReq.RecipientAccountNumber,
 			"amount":                   trfReq.Amount,
-			"currentBalance":           senderUser.Balance,
+			"saldo":                    senderUser.Saldo,
 		},
 	})
 }
@@ -164,8 +163,8 @@ func SavingTransaction(c *gin.Context) {
 		return
 	}
 
-	userBalance := user.Balance + savReq.Amount
-	user.Balance = userBalance
+	userSaldo := user.Saldo + savReq.Amount
+	user.Saldo = userSaldo
 	idInt, _ := strconv.Atoi(id)
 	saving := models.Saving{
 		UserID: idInt,
@@ -180,7 +179,7 @@ func SavingTransaction(c *gin.Context) {
 		return
 	}
 
-	err = database.DB.Table("users").Where("id=?", id).Update("balance", user.Balance).Error
+	err = database.DB.Table("users").Where("id=?", id).Update("saldo", user.Saldo).Error
 	if err != nil {
 		c.AbortWithStatusJSON(500, gin.H{
 			"message": "internal server error",
@@ -189,10 +188,11 @@ func SavingTransaction(c *gin.Context) {
 	}
 
 	UserHistory := models.History{
-		Amount:        savReq.Amount,
-		Date:          time.Now(),
-		UserID:        idInt,
-		TransactionID: saving.ID,
+		Amount:          savReq.Amount,
+		Date:            time.Now(),
+		UserID:          idInt,
+		TransactionID:   saving.ID,
+		TypeTransaction: "saving",
 	}
 
 	err = database.DB.Table("history").Create(&UserHistory).Error
@@ -206,8 +206,8 @@ func SavingTransaction(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "saving successfully",
 		"transaction": gin.H{
-			"amount":  savReq.Amount,
-			"balance": user.Balance,
+			"amount": savReq.Amount,
+			"saldo":  user.Saldo,
 		},
 	})
 }
@@ -245,15 +245,15 @@ func WithDrawTransaction(c *gin.Context) {
 		return
 	}
 
-	if WDReq.Amount > user.Balance {
+	if WDReq.Amount > user.Saldo {
 		c.AbortWithStatusJSON(400, gin.H{
 			"message": "your balance is not enough",
 		})
 		return
 	}
 
-	userBalance := user.Balance - WDReq.Amount
-	user.Balance = userBalance
+	userSaldo := user.Saldo - WDReq.Amount
+	user.Saldo = userSaldo
 	idInt, _ := strconv.Atoi(id)
 	withDraw := models.Saving{
 		UserID: idInt,
@@ -269,10 +269,11 @@ func WithDrawTransaction(c *gin.Context) {
 	}
 
 	UserHistory := models.History{
-		Amount:        WDReq.Amount,
-		Date:          time.Now(),
-		UserID:        idInt,
-		TransactionID: withDraw.ID,
+		Amount:          WDReq.Amount,
+		Date:            time.Now(),
+		UserID:          idInt,
+		TransactionID:   withDraw.ID,
+		TypeTransaction: "withdraw",
 	}
 
 	err = database.DB.Table("history").Create(&UserHistory).Error
@@ -283,7 +284,7 @@ func WithDrawTransaction(c *gin.Context) {
 		return
 	}
 
-	err = database.DB.Table("users").Where("id=?", id).Update("balance", user.Balance).Error
+	err = database.DB.Table("users").Where("id=?", id).Update("saldo", user.Saldo).Error
 	if err != nil {
 		c.AbortWithStatusJSON(500, gin.H{
 			"message": "internal server error",
@@ -294,15 +295,15 @@ func WithDrawTransaction(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "saving successfully",
 		"transaction": gin.H{
-			"amount":  WDReq.Amount,
-			"balance": user.Balance,
+			"amount": WDReq.Amount,
+			"saldo":  user.Saldo,
 		},
 	})
 }
 
 func GetHistoryTransactionUser(c *gin.Context) {
 	id := c.Param("id")
-	idInt, _ := strconv.Atoi("id")
+	// idInt, _ := strconv.Atoi("id")
 	History := new([]models.History)
 	user := new(models.Users)
 
@@ -322,15 +323,23 @@ func GetHistoryTransactionUser(c *gin.Context) {
 
 	err = database.DB.Table("history").Where("user_id = ?", id).Find(&History).Error
 	if err != nil {
-		c.JSON(400, gin.H{
+		c.JSON(500, gin.H{
 			"message": "internal server error",
 		})
 		return
 	}
 	historyexist := new(models.History)
-	if idInt != historyexist.UserID {
+	err = database.DB.Table("history").Where("user_id = ?", id).Find(&historyexist).Error
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "internal server error",
+		})
+		return
+	}
+	if historyexist.UserID == 0 {
 		c.AbortWithStatusJSON(400, gin.H{
 			"message": "no transaction history",
+			
 		})
 		return
 	}
