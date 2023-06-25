@@ -8,6 +8,7 @@ import (
 	"mini_Atm/service"
 	"mini_Atm/utils"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,19 +51,35 @@ func (h *userHandler) GetAllUsers(c *gin.Context) {
 
 func (h *userHandler) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
-	user := new(models.Users)
-	err := database.DB.Table("users").Where("id = ? ", id).First(&user).Error
+	idInt, _ := strconv.Atoi(id)
+	// user := new(models.Users)
+	// err := database.DB.Table("users").Where("id = ? ", id).First(&user).Error
+	// if err != nil {
+	// 	c.JSON(404, gin.H{
+	// 		"message": "internal s",
+	// 	})
+	// 	return
+	// }
+	// if user.ID == 0 {
+	// 	c.JSON(404, err_resp.UserNotFound)
+	// 	return
+	// }
+
+	// c.JSON(200, gin.H{
+	// 	"message": user,
+	// })
+	user, err := h.userService.FindByID(idInt)
 	if err != nil {
 		c.JSON(404, gin.H{
 			"message": "internal s",
 		})
 		return
+
 	}
 	if user.ID == 0 {
-		c.JSON(404, err_resp.UserNotFound)
+		c.AbortWithStatusJSON(404, err_resp.UserNotFound)
 		return
 	}
-
 	c.JSON(200, gin.H{
 		"message": user,
 	})

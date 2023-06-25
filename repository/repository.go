@@ -3,14 +3,12 @@ package repository
 import (
 	"log"
 	"mini_Atm/models"
-
 	"gorm.io/gorm"
 )
 
 type Repository interface {
 	FindByID(ID int) (models.Users, error)
 	FindAll() ([]models.Users, error)
-	// Create(user_req.UsersReq) (models.Users, error)
 }
 
 type repository struct {
