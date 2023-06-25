@@ -1,10 +1,10 @@
-# Project Name
+# cashflow
 
 Simple ATM API
 
 ## Description
 
-This project is an implementation of a simple ATM API using the Go framework and a SQL database. The API provides endpoints that allow users to perform basic ATM operations such as checking balance, cash withdrawal, and fund transfers.
+This project is an implementation of a simple ATM API using the Gin framework and a SQL database. The API provides endpoints that allow users to perform basic ATM operations such as checking balance, cash withdrawal, and fund transfers.
 
 ## Features
 
@@ -12,13 +12,12 @@ This project is an implementation of a simple ATM API using the Go framework and
 - Cash withdrawal
 - Account-to-account transfers
 - User management (add, update, delete)
-- Activity logging
 
 ## Technology Used
 
 - Programming Language: Go
 - Framework: [Gin](https://github.com/gin-gonic/gin)
-- Database: SQL (e.g., MySQL, PostgreSQL)
+- Database: SQL (e.g., MySQL)
 - ORM: [GORM](https://gorm.io)
 
 ## Installation
@@ -36,8 +35,6 @@ This project is an implementation of a simple ATM API using the Go framework and
 
 5. Database Configuration:
   Create a database on your SQL server.
-  Copy the .env.example file and rename it to .env.
-  Set your database connection configuration in the .env file.
   
 6. Run the application using the command:
   go run main.go
